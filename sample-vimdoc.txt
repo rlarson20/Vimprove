@@ -1,0 +1,23 @@
+==============================================================================
+1. Setting options                                      *set-option* *:set*
+
+Options are set with ":set".  The syntax is:
+
+    :se[t]
+
+Show all options that differ from their default value.
+
+    :se[t] all
+
+Show all but terminal options.
+
+    :se[t] {option}
+
+Toggle option: set, switch it on.
+...
+
+------------------------------------------------------------------------------
+'aleph'  'al'           number  (default 224)
+                        global
+                        {only available when compiled with Hebrew}
+        The ASCII code for the first letter of the Hebrew alphabet.
