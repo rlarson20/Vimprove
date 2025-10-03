@@ -9,4 +9,6 @@ wheels/
 # Virtual environments
 .venv
 .env
-plugin-schema.json
+vimprove-cache/*
+
+!vimprove-cache/plugins_config_example.json
