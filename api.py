@@ -240,6 +240,8 @@ async def stream_openrouter(prompt: str, model: str, max_tokens: int):
             "https://openrouter.ai/api/v1/chat/completions",
             headers={
                 "Authorization": f"Bearer {openrouter_key}",
+                "HTTP-Referer": "https://www.github.com/rlarson20/Vimprove",
+                "X-Title": "Vimprove",
                 "Content-Type": "application/json",
             },
             json={
@@ -255,19 +257,36 @@ async def stream_openrouter(prompt: str, model: str, max_tokens: int):
                     status_code=response.status_code,
                     detail=f"OpenRouter API error: {error_text.decode()}",
                 )
+
             async for line in response.aiter_lines():
                 if line.startswith("data: "):
                     data = line[6:]
                     if data == "[DONE]":
                         break
 
+                    # Handle empty or malformed data
+                    if not data.strip():
+                        continue
+
                     try:
                         import json
 
                         chunk = json.loads(data)
-                        if chunk["choices"][0].get("delta", {}).get("content"):
+
+                        # Safely navigate the nested structure
+                        if (
+                            chunk.get("choices")
+                            and len(chunk["choices"]) > 0
+                            and chunk["choices"][0].get("delta")
+                            and chunk["choices"][0]["delta"].get("content")
+                        ):
                             yield chunk["choices"][0]["delta"]["content"]
-                    except:  # TODO: idk what error streaming could throw here
+
+                    except json.JSONDecodeError:
+                        # Handle malformed JSON specifically
+                        continue
+                    except (KeyError, IndexError, TypeError):
+                        # Handle missing keys, empty arrays, or wrong types
                         continue
 
 
