@@ -25,7 +25,12 @@ def main():
         "--api-url", default="http://localhost:8000", help="API server URL"
     )
     parser.add_argument(
-        "--model", default="anthropic/claude-3.5-sonnet", help="Model to use"
+        "--model", default="anthropic/claude-4.5-sonnet", help="Model to use"
+    )
+    parser.add_argument(
+        "--stream",
+        action="store_true",
+        help="Stream response (shows text as it's generated)",
     )
 
     args = parser.parse_args()
@@ -42,16 +47,42 @@ def main():
     console = Console()
 
     with console.status("[bold green]Querying documentation..."):
-        try:
-            response = httpx.post(
-                f"{args.api_url}/query",
-                json={"query": args.query, "context": context, "model": args.model},
-                timeout=60.0,
-            )
-            response.raise_for_status()
-        except httpx.HTTPError as e:
-            console.print(f"[bold red]Error:[/bold red] {e}", file=sys.stderr)
-            return 1
+        if args.stream:
+            # Stream response
+            try:
+                with httpx.stream(
+                    "POST",
+                    f"{args.api_url}/query/stream",
+                    json={"query": args.query, "context": context, "model": args.model},
+                    timeout=60.0,
+                ) as response:
+                    response.raise_for_status()
+
+                    console.print("\n[bold cyan]Response:[/bold cyan]\n")
+
+                    # Collect chunks for markdown rendering
+                    response_text = ""
+                    for line in response.iter_lines():
+                        if line.startswith("data: "):
+                            chunk = line[6:]
+                            response_text += chunk
+                            console.print(chunk, end="")
+
+                    console.print("\n")
+            except httpx.HTTPError as e:
+                console.print(f"[bold red]Error:[/bold red] {e}", file=sys.stderr)
+                return 1
+        else:
+            try:
+                response = httpx.post(
+                    f"{args.api_url}/query",
+                    json={"query": args.query, "context": context, "model": args.model},
+                    timeout=60.0,
+                )
+                response.raise_for_status()
+            except httpx.HTTPError as e:
+                console.print(f"[bold red]Error:[/bold red] {e}", file=sys.stderr)
+                return 1
 
     data = response.json()
 
