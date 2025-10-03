@@ -43,7 +43,8 @@ class VimproveEmbedder:
             try:
                 self.client.delete_collection("vimprove_docs")
                 print("  Deleted existing collection (force mode)")
-            except:
+            except ValueError:
+                print("Error: Collection does not exist")
                 pass
 
         self.collection = self.client.get_or_create_collection(

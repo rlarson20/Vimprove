@@ -178,12 +178,12 @@ def build_prompt(query: str, results: list[dict[str, Any]], context: str | None)
     context_section = ""
     if context:
         context_section = f"""## Current Config
-    ```lua
-    {context}
-    ```
-    """
+```lua
+{context}
+```
+"""
 
-    prompt = """You are an expert Neovim configuration assistant. Answer the user's question using the provided documentation.
+    prompt = f"""You are an expert Neovim configuration assistant. Answer the user's question using the provided documentation.
 
 ## Query
 
@@ -267,7 +267,7 @@ async def stream_openrouter(prompt: str, model: str, max_tokens: int):
                         chunk = json.loads(data)
                         if chunk["choices"][0].get("delta", {}).get("content"):
                             yield chunk["choices"][0]["delta"]["content"]
-                    except:
+                    except:  # TODO: idk what error streaming could throw here
                         continue
 
 

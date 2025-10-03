@@ -1,7 +1,6 @@
 import json
 import requests
 from pathlib import Path
-from dotenv import dotenv_values
 
 
 class ReleaseTracker:
@@ -52,18 +51,3 @@ class ReleaseTracker:
             return True
 
         return False
-
-
-if __name__ == "__main__":
-    tracker = ReleaseTracker(
-        Path("./releases-cache.json").expanduser(),
-        github_token=dotenv_values()["GITHUB_TOKEN"],
-    )
-    # FIX: Where is this plugins thing coming from
-    for plugin_name, owner_repo in plugins.items():
-        owner, repo = owner_repo.split("/")
-        if tracker.needs_update(owner, repo):
-            print(f"Fetching docs for {owner_repo} (new release)")
-            # ... fetch docs ...
-        else:
-            print(f"Skipping {owner_repo} (no changes)")
