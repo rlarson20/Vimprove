@@ -20,21 +20,21 @@ end
 
 -- Execute CLI command and capture output
 local function execute_query(query, context)
-	-- Parse cli_path into command parts
-	-- Handle both "uv run /path/to/cli.py" and "/path/to/cli.py"
-	local cli_parts = vim.split(config.options.cli_path, " ", { trimempty = true })
+	-- Strip quotes from query if present
+	query = query:gsub('^"(.*)"$', "%1"):gsub("^'(.*)'$", "%1")
 
-	-- Expand ~ in the last part (the actual script path)
-	cli_parts[#cli_parts] = vim.fn.expand(cli_parts[#cli_parts])
+	-- Expand cli_path
+	local cli_cmd = vim.fn.expand(config.options.cli_path)
 
-	local args = vim.list_extend({}, cli_parts)
-
-	-- Add query and other arguments
-	table.insert(args, query)
-	table.insert(args, "--api-url")
-	table.insert(args, config.options.api_url)
-	table.insert(args, "--model")
-	table.insert(args, config.options.model)
+	-- Build command string with proper escaping
+	local cmd_parts = {
+		cli_cmd,
+		vim.fn.shellescape(query),
+		"--api-url",
+		vim.fn.shellescape(config.options.api_url),
+		"--model",
+		vim.fn.shellescape(config.options.model),
+	}
 
 	-- Add context as temp file if provided
 	local context_file = nil
@@ -44,15 +44,20 @@ local function execute_query(query, context)
 		if file then
 			file:write(context)
 			file:close()
-			table.insert(args, "--context")
-			table.insert(args, context_file)
+			table.insert(cmd_parts, "--context")
+			table.insert(cmd_parts, vim.fn.shellescape(context_file))
 		else
 			vim.notify("Failed to create temp file for context", vim.log.levels.WARN)
 		end
 	end
 
+	local full_cmd = table.concat(cmd_parts, " ")
+
+	-- Debug: print the command
+	vim.notify("Executing: " .. full_cmd, vim.log.levels.DEBUG)
+
 	-- Execute and capture output
-	local output = vim.fn.system(args)
+	local output = vim.fn.system(full_cmd)
 	local exit_code = vim.v.shell_error
 
 	-- Clean up temp file
