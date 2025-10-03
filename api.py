@@ -170,51 +170,40 @@ def build_prompt(query: str, results: list[dict[str, Any]], context: str | None)
     # Format retrieved chunks
     docs_text = "\n\n---\n\n".join(
         [
-            f"Source: {r['metadata']['source']}\nType: {r['metadata']['type']}\n\n{r['text']}"
+            f"**Source:** {r['metadata']['source']}\n**Type:** {r['metadata']['type']}\n\n{r['text']}"
             for r in results
         ]
     )
 
     context_section = ""
     if context:
-        context_section = f"""
-        ## Current Config Context
-       ```lua
-       {context}
-       ```
-       """
-    prompt = f"""
-    You are an expert Neovim configuration assistant. A user has asked a question about their Neovim setup, and you have access to relevant documentation.
-
-    ## User Query
-
-    {query}
-    {context_section}
-
-    ## Retrieved Documentation
-
-    {docs_text}
-
-    ## Instructions
-    Based on the retrieved documentation, provide a helpful response that:
-
-    Explanation: Start with a clear explanation in plain English of what needs to be done or how the feature works
-    Config Snippet: Provide a complete, working Lua configuration snippet that the user can use
-    References: Point to the relevant sections of the documentation for further reading, citing specific sources
-
-    Format your response as follows:
-    Explanation:
-    [Your explanation here]
-    Configuration:
+        context_section = f"""## Current Config
     ```lua
-    [Your config snippet here]
+    {context}
     ```
-    ## References:
-
-    [Source citations with brief descriptions]
-    
-    Be concise but thorough. If the documentation doesn't fully answer the query, acknowledge what's missing.
     """
+
+    prompt = """You are an expert Neovim configuration assistant. Answer the user's question using the provided documentation.
+
+## Query
+
+{query}
+{context_section}
+
+## Documentation
+
+{docs_text}
+
+--- 
+
+Provide a response with:
+
+Explanation (2-3 sentences): What the user needs to do.
+Configuration (complete Lua snippet): Ready-to-use code.
+Sources (1-2 key references): Where to learn more.
+
+Keep it concise. Use idiomatic Lua (e.g., vim.keymap.set over vim.api.nvim_set_keymap).
+If the docs don't fully answer the question, say so."""
     return prompt
 
 
