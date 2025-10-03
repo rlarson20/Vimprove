@@ -2,7 +2,7 @@ from markdown_it import MarkdownIt
 import pathlib
 
 
-def chunk_markdown_fixed(text: str, source: str) -> list[dict[str, any]]:
+def chunk_markdown(text: str, source: str) -> list[dict[str, any]]:
     """
     Parse markdown with markdown-it-py, chunk on heading boundaries.
 
@@ -163,7 +163,7 @@ if __name__ == "__main__":
     readme_path = pathlib.Path("../sample-lazy-readme.md")  # Your sample file
     readme_text = readme_path.read_text()
 
-    chunks = chunk_markdown_fixed(readme_text, "folke/lazy.nvim")
+    chunks = chunk_markdown(readme_text, "folke/lazy.nvim")
 
     import json
 
