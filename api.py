@@ -15,6 +15,7 @@ import httpx
 
 import uvicorn
 import argparse
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
@@ -23,10 +24,30 @@ from dotenv import load_dotenv
 from src.retriever import VimproveRetriever
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan context manager for startup and shutdown events."""
+    # Startup
+    global retriever, openrouter_key
+
+    cache_dir = Path(os.environ.get("VIMPROVE_CACHE_DIR", "./vimprove-cache")).resolve()
+    openrouter_key = os.environ.get("OPENROUTER_API_KEY")
+
+    if not openrouter_key:
+        print("Warning: OPENROUTER_API_KEY not set. Query endpoint will fail.")
+
+    print(f"Loading retriever from {cache_dir}...")
+    retriever = VimproveRetriever(cache_dir)
+    print(f"✓ Retriever ready ({retriever.collection.count()} chunks)")
+
+    yield  # App runs here
+
+
 app = FastAPI(
     title="Vimprove API",
     description="RAG-powered Neovim configuration assistant",
     version="0.1.0",
+    lifespan=lifespan,
 )
 
 
@@ -55,22 +76,6 @@ class QueryResponse(BaseModel):
     response: str
     sources: list[dict[str, Any]]
     model_used: str
-
-
-@app.on_event("startup")
-async def startup_event():
-    """Initialize retriever on startup."""
-    global retriever, openrouter_key
-
-    cache_dir = Path(os.environ.get("VIMPROVE_CACHE_DIR", "./vimprove-cache")).resolve()
-    openrouter_key = os.environ.get("OPENROUTER_API_KEY")
-
-    if not openrouter_key:
-        print("Warning: OPENROUTER_API_KEY not set. Query endpoint will fail.")
-
-    print(f"Loading retriever from {cache_dir}...")
-    retriever = VimproveRetriever(cache_dir)
-    print(f"✓ Retriever ready ({retriever.collection.count()} chunks)")
 
 
 @app.get("/health")
