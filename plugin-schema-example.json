@@ -1,0 +1,14 @@
+{
+  "overrides": {
+    "catppuccin": "catppuccin/nvim",
+    "vim-sleuth": "tpope/vim-sleuth"
+  },
+  "ignore": [
+    "catppuccin",
+    "tokyonight.nvim",
+    "rose-pine"
+  ],
+  "always_include": [
+    "lazy.nvim"
+  ]
+}
