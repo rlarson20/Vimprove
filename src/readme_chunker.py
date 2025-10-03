@@ -1,116 +1,172 @@
-import json
 from markdown_it import MarkdownIt
-from markdown_it.tree import SyntaxTreeNode
+import pathlib
 
 
-def chunk_markdown(text: str, source: str) -> list[dict[str, any]]:
+def chunk_markdown_fixed(text: str, source: str) -> list[dict[str, any]]:
     """
-    Parse markdown using markdown-it-py, chunk on heading boundaries.
-    Preserve heading hierarchy and all content types (code, lists, etc).
+    Parse markdown with markdown-it-py, chunk on heading boundaries.
+
+    Improvements:
+    - Deduplicate list processing
+    - Skip HTML and image references
+    - Proper heading hierarchy tracking
+    - Better code block handling
     """
     md = MarkdownIt()
     tokens = md.parse(text)
-    tree = SyntaxTreeNode(tokens)
 
     chunks = []
     heading_stack = []
     current_text_parts = []
 
-    def extract_text_from_token(token: SyntaxTreeNode) -> str:
-        """Recursively extract text content from a token."""
-        if token.type == "text":
-            return token.content
-        elif token.type == "code_inline":
-            return f"`{token.content}`"
-        elif token.type == "code_block" or token.type == "fence":
-            lang = getattr(token, "info", "")
-            return f"\n```{lang}\n{token.content}```\n"
-        elif hasattr(token, "children") and token.children:
-            return "".join(extract_text_from_token(child) for child in token.children)
-        return ""
+    # Track which tokens we've already processed to avoid duplication
+    i = 0
+    while i < len(tokens):
+        token = tokens[i]
 
-    def process_node(node: SyntaxTreeNode):
-        nonlocal heading_stack, current_text_parts
-
-        # Handle heading nodes
-        if node.type == "heading":
-            # Save previous chunk if it has content
+        # Heading: save previous chunk, update stack
+        if token.type == "heading_open":
+            # Save accumulated text
             if current_text_parts:
-                text = "\n".join(current_text_parts).strip()
-                if text:
+                text_content = "\n".join(current_text_parts).strip()
+                if text_content:
                     chunks.append(
                         {
                             "type": "markdown",
                             "source": source,
                             "headings": heading_stack.copy(),
-                            "text": text,
+                            "text": text_content,
                         }
                     )
                 current_text_parts = []
 
-            # Update heading stack
-            level = int(node.tag[1])  # h1 -> 1, h2 -> 2, etc.
-            heading_text = extract_text_from_token(node)
+            # Extract heading level and text
+            level = int(token.tag[1])
+            i += 1
+            heading_text = ""
+            if i < len(tokens) and tokens[i].type == "inline":
+                heading_text = extract_inline_text(tokens[i])
+
+            # Update heading stack (truncate to current level - 1, then append)
             heading_stack = heading_stack[: level - 1] + [heading_text]
 
-        # Handle content nodes
-        elif node.type in ["paragraph", "blockquote", "list_item"]:
-            content = extract_text_from_token(node)
-            if content.strip():
-                current_text_parts.append(content)
+            # Skip heading_close
+            i += 2
+            continue
 
-        elif node.type in ["fence", "code_block"]:
-            content = extract_text_from_token(node)
-            current_text_parts.append(content)
+        # Paragraph
+        elif token.type == "paragraph_open":
+            i += 1
+            if i < len(tokens) and tokens[i].type == "inline":
+                text = extract_inline_text(tokens[i])
+                if text.strip():
+                    current_text_parts.append(text)
+            i += 2  # Skip inline and paragraph_close
+            continue
 
-        elif node.type == "bullet_list" or node.type == "ordered_list":
-            # Lists are handled via their items, but add spacing
-            if current_text_parts and current_text_parts[-1] != "":
-                current_text_parts.append("")
+        # Code block / fence
+        elif token.type == "fence" or token.type == "code_block":
+            lang = getattr(token, "info", "") or ""
+            code = token.content.rstrip("\n")
+            current_text_parts.append(f"```{lang}\n{code}\n```")
+            i += 1
+            continue
 
-        # Recurse into children
-        for child in node.children:
-            process_node(child)
+        # Lists - process the list items, not the container
+        elif token.type == "bullet_list_open" or token.type == "ordered_list_open":
+            i += 1
+            list_text = []
 
-    # Walk the tree
-    for child in tree.children:
-        process_node(child)
+            # Process list items
+            while i < len(tokens) and tokens[i].type == "list_item_open":
+                i += 1
+                item_parts = []
+
+                # Collect all content in this list item
+                while i < len(tokens) and tokens[i].type != "list_item_close":
+                    if tokens[i].type == "paragraph_open":
+                        i += 1
+                        if tokens[i].type == "inline":
+                            item_text = extract_inline_text(tokens[i])
+                            item_parts.append(item_text)
+                        i += 2  # Skip inline and paragraph_close
+                    else:
+                        i += 1
+
+                if item_parts:
+                    list_text.append(" ".join(item_parts))
+
+                i += 1  # Skip list_item_close
+
+            if list_text:
+                current_text_parts.append("\n".join(list_text))
+
+            i += 1  # Skip list_close
+            continue
+
+        # HTML blocks and inline HTML - skip
+        elif token.type in ["html_block", "html_inline"]:
+            i += 1
+            continue
+
+        # Everything else
+        else:
+            i += 1
 
     # Save final chunk
     if current_text_parts:
-        text = "\n".join(current_text_parts).strip()
-        if text:
+        text_content = "\n".join(current_text_parts).strip()
+        if text_content:
             chunks.append(
                 {
                     "type": "markdown",
                     "source": source,
                     "headings": heading_stack,
-                    "text": text,
+                    "text": text_content,
                 }
             )
 
     return chunks
 
 
+def extract_inline_text(token) -> str:
+    """
+    Extract plain text from inline token, skipping images and complex formatting.
+    """
+    if not token.children:
+        return token.content
+
+    parts = []
+    for child in token.children:
+        if child.type == "text":
+            parts.append(child.content)
+        elif child.type == "code_inline":
+            parts.append(f"`{child.content}`")
+        elif child.type == "softbreak" or child.type == "hardbreak":
+            parts.append("\n")
+        elif child.type == "link_open":
+            # We'll capture the link text from subsequent tokens
+            continue
+        elif child.type == "link_close":
+            continue
+        elif child.type == "image":
+            # Skip images entirely
+            continue
+        # Recursively handle nested inlines
+        elif hasattr(child, "children") and child.children:
+            parts.append(extract_inline_text(child))
+
+    return "".join(parts)
+
+
 if __name__ == "__main__":
-    with open("./sample-readme.md") as f:
-        chunks = chunk_markdown(f.read(), "telescope.nvim")
-        __import__("pprint").pprint(chunks)
+    readme_path = pathlib.Path("../sample-lazy-readme.md")  # Your sample file
+    readme_text = readme_path.read_text()
 
-        sample = """# telescope.nvim
-                    Fuzzy finder for neovim.
+    chunks = chunk_markdown_fixed(readme_text, "folke/lazy.nvim")
 
-                    ## Installation
+    import json
 
-                    Using lazy.nvim:
-                    ```lua
-                    { 'nvim-telescope/telescope.nvim' }
-                    Usage
-                    Finding files
-                    Use :Telescope find_files.
-                    Live grep
-                    Search contents with :Telescope live_grep.
-                    """
-        chunks = chunk_markdown(sample, "telescope.nvim")
-        for chunk in chunks:
-            print(json.dumps(chunk, indent=2))
+    for chunk in chunks:
+        print(json.dumps(chunk, indent=2))
+        print()
