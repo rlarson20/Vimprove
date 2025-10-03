@@ -1,0 +1,37 @@
+{
+  "query": "How do I set up LSP keymaps?",
+  "response": "# Explanation:\n\nThe retrieved documentation doesn't contain specific information about setting up LSP keymaps in the traditional sense. However, based on standard Neovim LSP practices, LSP keymaps are typically set up using the `LspAttach` autocmd, which triggers when an LSP client attaches to a buffer.\n\nLSP keymaps allow you to bind actions like \"go to definition,\" \"show hover documentation,\" \"rename symbol,\" etc. These are set buffer-locally when an LSP server connects to your file.\n\n# Configuration:\n\n```lua\n-- Set up LSP keymaps when an LSP server attaches to a buffer\nvim.api.nvim_create_autocmd('LspAttach', {\n  group = vim.api.nvim_create_augroup('UserLspConfig', {}),\n  callback = function(ev)\n    -- Enable completion triggered by <c-x><c-o>\n    vim.bo[ev.buf].omnifunc = 'v:lua.vim.lsp.omnifunc'\n\n    -- Buffer local mappings\n    local opts = { buffer = ev.buf }\n    \n    -- Go to definition\n    vim.keymap.set('n', 'gd', vim.lsp.buf.definition, opts)\n    \n    -- Go to declaration\n    vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, opts)\n    \n    -- Show hover documentation\n    vim.keymap.set('n', 'K', vim.lsp.buf.hover, opts)\n    \n    -- Go to implementation\n    vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, opts)\n    \n    -- Show signature help\n    vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, opts)\n    \n    -- Rename symbol\n    vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, opts)\n    \n    -- Code action\n    vim.keymap.set({ 'n', 'v' }, '<leader>ca', vim.lsp.buf.code_action, opts)\n    \n    -- Show references\n    vim.keymap.set('n', 'gr', vim.lsp.buf.references, opts)\n    \n    -- Format buffer\n    vim.keymap.set('n', '<leader>f', function()\n      vim.lsp.buf.format { async = true }\n    end, opts)\n  end,\n})\n```\n\n## References:\n\n**Note:** The retrieved documentation focused on keymap options for language input, mini.nvim's keymap utilities, and nvim-lspconfig server snippets, but didn't contain the specific LSP keymap setup information. The configuration above follows Neovim's standard LSP keymap pattern using the `LspAttach` autocmd, which is the recommended approach in modern Neovim (0.8+).\n\nFor complete LSP setup including keymaps, you would typically refer to:\n- **neovim/nvim-lspconfig** - For enabling LSP servers (as shown in the typst_lsp and prosemd_lsp examples)\n- Neovim's built-in `:help lsp` documentation\n- `:help LspAttach` for autocmd documentation",
+  "sources": [
+    {
+      "source": "neovim-core",
+      "type": "vimdoc",
+      "text": "The value of the 'keymap' option specifies a keymap file to use.  The name of\nthis file is one of these two:",
+      "distance": 0.8367006778717041
+    },
+    {
+      "source": "echasnovski/mini.nvim",
+      "type": "vimdoc",
+      "text": "`MiniKeymap.config`\nDefaults ~\n>lua\n  MiniKeymap.config = {}\n<",
+      "distance": 0.9038951396942139
+    },
+    {
+      "source": "leath-dub/snipe.nvim",
+      "type": "markdown",
+      "text": "snipe-lsp - navigate LSP\nsymbols using a snipe menu\nsnipe-spell - use snipe as\nui menu to builtin vim spell checking\nsnipe-marks - navigate\nmarks using snipe",
+      "distance": 0.9239224195480347
+    },
+    {
+      "source": "hrsh7th/nvim-cmp",
+      "type": "vimdoc",
+      "text": "- Full support for LSP completion related capabilities\n- Powerful customization abilities via Lua functions\n- Smart handling of key mappings\n- No flicker",
+      "distance": 0.9291921854019165
+    },
+    {
+      "source": "neovim-core",
+      "type": "vimdoc",
+      "text": "*i_CTRL-^*\nCTRL-^\t\tToggle the use of typing language characters.\n\t\tWhen language |:lmap| mappings are defined:\n\t\t- If 'iminsert' is 1 (langmap mappings used) it becomes 0 (no\n\t\t  langmap mappings used...",
+      "distance": 0.9356729984283447
+    }
+  ],
+  "model_used": "anthropic/claude-4.5-sonnet"
+}
