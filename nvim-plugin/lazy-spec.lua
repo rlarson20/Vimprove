@@ -1,9 +1,9 @@
 return {
-	"your-username/vimprove.nvim",
-	dir = "~/path/to/Vimprove/nvim-plugin", -- Local development
+	"rlarson20/vimprove.nvim",
+	dir = "/path/to/Vimprove/nvim-plugin", -- Local development
 	config = function()
 		require("vimprove").setup({
-			cli_path = "uv run ~/path/to/Vimprove/cli.py",
+			cli_path = "uv run --directory /path/to/Vimprove/  /path/to/Vimprove/cli.py",
 			api_url = "http://localhost:8000",
 			model = "anthropic/claude-4.5-sonnet",
 		})
