@@ -20,30 +20,39 @@ end
 
 -- Execute CLI command and capture output
 local function execute_query(query, context)
-	local cmd = config.options.cli_path
-	local args = {
-		vim.fn.shellescape(query),
-		"--api-url",
-		config.options.api_url,
-		"--model",
-		config.options.model,
-	}
+	-- Parse cli_path into command parts
+	-- Handle both "uv run /path/to/cli.py" and "/path/to/cli.py"
+	local cli_parts = vim.split(config.options.cli_path, " ", { trimempty = true })
+
+	-- Expand ~ in the last part (the actual script path)
+	cli_parts[#cli_parts] = vim.fn.expand(cli_parts[#cli_parts])
+
+	local args = vim.list_extend({}, cli_parts)
+
+	-- Add query and other arguments
+	table.insert(args, query)
+	table.insert(args, "--api-url")
+	table.insert(args, config.options.api_url)
+	table.insert(args, "--model")
+	table.insert(args, config.options.model)
 
 	-- Add context as temp file if provided
 	local context_file = nil
 	if context and context ~= "" then
 		context_file = vim.fn.tempname() .. ".lua"
 		local file = io.open(context_file, "w")
-		file:write(context)
-		file:close()
-		table.insert(args, "--context")
-		table.insert(args, context_file)
+		if file then
+			file:write(context)
+			file:close()
+			table.insert(args, "--context")
+			table.insert(args, context_file)
+		else
+			vim.notify("Failed to create temp file for context", vim.log.levels.WARN)
+		end
 	end
 
-	local full_cmd = cmd .. " " .. table.concat(args, " ")
-
 	-- Execute and capture output
-	local output = vim.fn.system(full_cmd)
+	local output = vim.fn.system(args)
 	local exit_code = vim.v.shell_error
 
 	-- Clean up temp file
