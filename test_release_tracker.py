@@ -5,18 +5,20 @@ Usage: python test_release_tracker.py
 """
 
 from pathlib import Path
+from dotenv import load_dotenv
 import os
 
 # Assuming you saved the stubs as separate files
-from lazy_lock_parser import extract_plugin_list
-from release_tracker import ReleaseTracker
+from src.plugin_list_extractor import extract_plugin_list
+from src.github_release_tracker import ReleaseTracker
 
 
 def main():
+    load_dotenv()
     # Paths (adjust to your setup)
     lazy_lock_path = Path("~/.config/nvim/lazy-lock.json").expanduser()
     lazy_specs_dir = Path("~/.config/nvim/lua/plugins").expanduser()
-    cache_dir = Path("~/.cache/nvim-rag").expanduser()
+    cache_dir = Path("./vimprove-cache")
     cache_dir.mkdir(parents=True, exist_ok=True)
 
     github_token = os.environ.get("GITHUB_TOKEN")
@@ -27,7 +29,7 @@ def main():
     # Extract plugin list
     print("Extracting plugin list...")
     plugins = extract_plugin_list(lazy_lock_path, lazy_specs_dir)
-    print(f"Found {len(plugins)} plugins\n")
+    print(f"Found {len(plugins)} plugins\n")  # should be 56
 
     # Initialize release tracker
     tracker = ReleaseTracker(
