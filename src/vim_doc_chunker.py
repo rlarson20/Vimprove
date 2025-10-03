@@ -1,10 +1,9 @@
 import pprint
 import re
+from typing import Any
 
 
-def chunk_vimdoc(
-    text: str, source: str
-) -> list[dict[str, any]]:  # FIX: specify the proper types
+def chunk_vimdoc(text: str, source: str) -> list[dict[str, Any]]:
     """
     Split vimdoc on section delimiters (==== or ----).
     Extract heading, tags, and body for each section.

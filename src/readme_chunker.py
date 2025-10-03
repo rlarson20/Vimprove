@@ -1,8 +1,9 @@
 from markdown_it import MarkdownIt
 import pathlib
+from typing import Any
 
 
-def chunk_markdown(text: str, source: str) -> list[dict[str, any]]:
+def chunk_markdown(text: str, source: str) -> list[dict[str, Any]]:
     """
     Parse markdown with markdown-it-py, chunk on heading boundaries.
 
@@ -16,8 +17,8 @@ def chunk_markdown(text: str, source: str) -> list[dict[str, any]]:
     tokens = md.parse(text)
 
     chunks = []
-    heading_stack = []
-    current_text_parts = []
+    heading_stack: list[str] = []
+    current_text_parts: list[str] = []
 
     # Track which tokens we've already processed to avoid duplication
     i = 0

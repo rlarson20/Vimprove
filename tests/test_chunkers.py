@@ -63,11 +63,13 @@ Some usage info.
 def test_markdown_chunker_skips_html():
     """Test that markdown chunker skips HTML."""
     sample = """# Title
-    <div class="badge">
-      <img src="badge.png" />
-    </div>
-    Some text.
-    """
+
+<div class="badge">
+  <img src="badge.png" />
+</div>
+
+Some text.
+"""
     chunks = chunk_markdown(sample, "test-source")
 
     # Should have only the text, not HTML

@@ -24,11 +24,14 @@ def mock_retriever():
 @pytest.fixture
 def client(mock_retriever):
     """Test client with mocked dependencies."""
-    with patch("api.retriever", mock_retriever):
-        with patch("api.openrouter_key", "test-key"):
-            from api import app
+    with (
+        patch("api.retriever", mock_retriever),
+        patch("api.openrouter_key", "test-key"),
+    ):
+        from api import app
 
-            return TestClient(app)
+        with TestClient(app) as test_client:
+            yield test_client
 
 
 def test_health_endpoint(client):
