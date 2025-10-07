@@ -1,8 +1,14 @@
 """Tests for API endpoints."""
 
+import os
 import pytest
 from fastapi.testclient import TestClient
 from unittest.mock import Mock, patch
+
+pytestmark = pytest.mark.skipif(
+    "CI" in os.environ,
+    reason="API tests require vector DB setup, those tests are run locally.",
+)
 
 
 @pytest.fixture
