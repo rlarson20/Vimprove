@@ -1,0 +1,22 @@
+services:
+  vimprove-api:
+    build: .
+    container_name: vimprove-api
+    ports:
+      - "8000:8000"
+    environment:
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - VIMPROVE_CACHE_DIR=/app/vimprove-cache
+    volumes:
+      # Persist vector DB and chunks
+      - vimprove-data:/app/vimprove-cache
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+volumes:
+  vimprove-data:
+    driver: local

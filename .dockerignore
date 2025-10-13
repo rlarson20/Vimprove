@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+
+# Cache
+vimprove-cache/
+*.log
+*.pid
+
+# Git
+.git/
+.github/
+
+# Tests
+tests/
+.pytest_cache/
+.coverage
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docs
+README.md
+docs/
