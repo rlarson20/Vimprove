@@ -13,7 +13,7 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
-        args: [--cov=au, --cov-report=term-missing:skip-covered, -v]
+        args: [--cov=vimprove, --cov-report=term-missing:skip-covered, -v]
   - repo: https://github.com/PyCQA/bandit
     rev: 1.8.6
     hooks:
