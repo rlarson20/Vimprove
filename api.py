@@ -219,6 +219,8 @@ async def call_openrouter(prompt: str, model: str, max_tokens: int) -> str:
             "https://openrouter.ai/api/v1/chat/completions",
             headers={
                 "Authorization": f"Bearer {openrouter_key}",
+                "HTTP-Referer": "https://www.github.com/rlarson20/Vimprove",
+                "X-Title": "Vimprove",
                 "Content-Type": "application/json",
             },
             json={
