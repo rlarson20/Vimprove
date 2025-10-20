@@ -1,3 +1,6 @@
+run:
+	uv run api.py
+
 test:
 	uv run pytest
 
