@@ -9,7 +9,7 @@ repos:
     hooks:
       - id: pytest
         name: pytest
-        entry: uv run pytest
+        entry: bash -c 'if [ -z "$SKIP_TESTMON" ]; then uv run pytest --testmon; else uv run pytest; fi'
         language: system
         pass_filenames: false
         always_run: true

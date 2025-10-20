@@ -13,3 +13,4 @@ wheels/
 
 !vimprove-cache/plugins_config_example.json
 .coverage
+.testmondata*
