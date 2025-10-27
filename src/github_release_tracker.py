@@ -1,5 +1,5 @@
 import json
-import requests
+import httpx
 from pathlib import Path
 
 
@@ -22,12 +22,12 @@ class ReleaseTracker:
     def get_latest_release(self, owner: str, repo: str) -> str | None:
         """Fetch latest release tag, return None if no releleases"""
         url = f"https://api.github.com/repos/{owner}/{repo}/releases/latest"
-        resp = requests.get(url, headers=self.headers)
+        resp = httpx.get(url, headers=self.headers)
 
         if resp.status_code == 404:
             # No releases, fall back to latest commit SHA
             url = f"https://api.github.com/repos/{owner}/{repo}/commits/HEAD"
-            resp = requests.get(url, headers=self.headers)
+            resp = httpx.get(url, headers=self.headers)
             if resp.status_code == 200:
                 return resp.json()["sha"][:7]  # Short SHA
             return None

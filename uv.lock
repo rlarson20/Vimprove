@@ -2119,7 +2119,6 @@ dependencies = [
     { name = "httpx" },
     { name = "markdown-it-py" },
     { name = "python-dotenv" },
-    { name = "requests" },
     { name = "sentence-transformers" },
 ]
 
@@ -2139,7 +2138,6 @@ requires-dist = [
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "markdown-it-py", specifier = ">=4.0.0" },
     { name = "python-dotenv", specifier = ">=1.1.1" },
-    { name = "requests", specifier = ">=2.32.5" },
     { name = "sentence-transformers", specifier = ">=5.1.1" },
 ]
 
