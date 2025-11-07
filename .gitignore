@@ -14,3 +14,8 @@ wheels/
 !vimprove-cache/plugins_config_example.json
 .coverage
 .testmondata*
+
+*.md
+!README.md
+
+nohup.out
