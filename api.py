@@ -120,6 +120,9 @@ async def query(request: QueryRequest):
         {
             "source": r["metadata"]["source"],
             "type": r["metadata"]["type"],
+            "heading": r["metadata"].get("heading"),  # vimdoc
+            "tags": r["metadata"].get("tags"),  # vimdoc
+            "headings": r["metadata"].get("headings"),  # markdown
             "text": r["text"][:200] + "..." if len(r["text"]) > 200 else r["text"],
             "distance": r["distance"],
         }
@@ -175,7 +178,25 @@ def build_prompt(query: str, results: list[dict[str, Any]], context: str | None)
     # Format retrieved chunks
     docs_text = "\n\n---\n\n".join(
         [
-            f"**Source:** {r['metadata']['source']}\n**Type:** {r['metadata']['type']}\n\n{r['text']}"
+            f"**Source:** {r['metadata']['source']}\n"
+            + f"**Type:** {r['metadata']['type']}\n"
+            + (
+                f"**Heading:** {r['metadata']['heading']}\n"
+                if r["metadata"].get("heading")
+                else ""
+            )
+            + (
+                f"**Tags:** {r['metadata']['tags']}\n"
+                if r["metadata"].get("tags")
+                else ""
+            )
+            + (
+                f"**Section:** {r['metadata']['headings']}\n"
+                if r["metadata"].get("headings")
+                else ""
+            )
+            + "\n"
+            + r["text"]
             for r in results
         ]
     )

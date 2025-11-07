@@ -58,6 +58,7 @@ class VimproveRetriever:
             query_embeddings=[query_embedding],
             n_results=n_results,
             where=where if where else None,
+            include=["metadatas", "documents", "distances"],
         )
 
         # Format results

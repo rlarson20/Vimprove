@@ -76,3 +76,29 @@ Some text.
     assert len(chunks) == 1
     assert "Some text" in chunks[0]["text"]
     assert "<div" not in chunks[0]["text"]
+
+
+def test_vimdoc_preserves_tags():
+    """Verify tags are extracted and stored."""
+    sample = """
+==============================================================================
+OPTIONS                                                     *options* *'grepprg'*
+
+The 'grepprg' option sets the program to use for :grep.
+"""
+    chunks = chunk_vimdoc(sample, "test")
+    assert len(chunks) == 1
+    assert "'grepprg'" in chunks[0]["tags"]
+    assert "options" in chunks[0]["tags"]
+
+
+def test_markdown_heading_hierarchy():
+    """Verify nested headings create proper hierarchy."""
+    sample = """# Telescope
+## Commands
+### find_files
+Usage info here.
+"""
+    chunks = chunk_markdown(sample, "test")
+    find_chunk = next(c for c in chunks if "Usage" in c["text"])
+    assert find_chunk["headings"] == ["Telescope", "Commands", "find_files"]

@@ -93,7 +93,13 @@ def main():
     # Display sources
     console.print("\n[bold cyan]Sources consulted:[/bold cyan]")
     for source in data["sources"]:
-        console.print(f"  • {source['source']} ({source['type']})")
+        identifier = (
+            source.get("heading") or source.get("tags") or source.get("headings")
+        )
+        if identifier:
+            console.print(f"  • {source['source']}: {identifier}")
+        else:
+            console.print(f"  • {source['source']} ({source['type']})")
 
     return 0
 
