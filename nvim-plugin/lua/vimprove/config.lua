@@ -19,8 +19,9 @@ M.defaults = {
 
 	-- Keybindings
 	keybindings = {
-		query_with_context = "<leader>vq",
-		query_prompt = "<leader>vp",
+		-- need to figure out keybindings
+		query_with_context = "<leader>ac",
+		query_prompt = "<leader>av",
 	},
 }
 
