@@ -11,11 +11,11 @@ WORKDIR /app
 
 COPY pyproject.toml uv.lock ./
 
-RUN "uv sync --frozen --no-dev"
+RUN uv sync --frozen --no-dev
 
 COPY . .
 
-RUN "mkdir -p /app/vimprove-cache"
+RUN mkdir -p /app/vimprove-cache
 
 EXPOSE 8000
 
